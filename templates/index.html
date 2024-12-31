@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapid Seek</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 50px auto;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        
+        .result {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .result h3 {
+            margin: 0;
+        }
+        .result a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Rapid Seek</h1>
+    <form id="searchForm">
+        <input type="text" id="search-input" name="query" placeholder="Search...">
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+</div>
+
+<script>
+    document.getElementById("searchForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const query = e.target.query.value;
+     
+        try {
+            const response = await fetch("http://127.0.0.1:5000/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ query })
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const results = await response.json();
+            console.log("Search results:", results);  // Debug log for results
+    
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "";
+    
+            if (Array.isArray(results) && results.length > 0) {
+                results.forEach(result => {
+                    const div = document.createElement("div");
+                    div.className = "result";
+                    div.innerHTML = `
+                        <h3>${result.title}</h3>
+                        <p><strong>Source:</strong> ${result.source_name}</p>
+                        <p>${result.full_content}</p>
+                        <p><strong>Score:</strong> ${result.score.toFixed(4)}</p>
+                    `;
+                    resultsDiv.appendChild(div);
+                });
+            } else {
+                resultsDiv.innerHTML = "<p>No results found.</p>";
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("results").innerHTML = "<p>An error occurred while searching.</p>";
+        }
+    });
+    
+</script>
+
+</body>
+</html>
